@@ -8,11 +8,21 @@ const server = http.createServer(app);
 const io = socketIO(server);//tích hợp socket.io vào server
 const port = process.env.PORT || 8080
 app.use(express.static(publicPath));// middleware qua public folder
-io.on('connection', (socket)=> {//tạo event với name là connection
+io.on('connection', (socket)=> {//tạo event với name mặc định
     console.log('New user connected');
     socket.on('disconnect', ()=> {
         console.log('User was disconnected');
-    })
+    });
+    //terminal (bên server) viết trong file server.js
+    // browser (bên client) viết trong file index.html
+    socket.emit('newMessage', {
+        from: 'GAU',
+        text: "See you then",
+        createAt: 123123
+    }) // emit event: phát ra event để phía client listen.
+    socket.on('createMessage', (message)=> {
+        console.log('createMessage', message);
+    })// listen event từ phía client
 });
 
 server.listen(port, () => {
