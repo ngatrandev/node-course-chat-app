@@ -3,6 +3,7 @@ const http = require('http');
 const publicPath = path.join(__dirname, "../public");//__dirname là đường dẫn đến folder server dùng join() sẽ tạo đường dẫn đến folder public
 const express = require('express');
 const socketIO = require('socket.io');
+const {generateMessage} = require('./utils/message');
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);//tích hợp socket.io vào server
@@ -20,25 +21,14 @@ io.on('connection', (socket)=> {//tạo event với name mặc định
     //     text: "See you then",
     //     createAt: 123123
     // }) // emit event: phát ra event để phía client listen.
-    socket.emit('newMessage', {
-        from: 'Admin',
-        text: 'Welcome to the chat app'
-    });
-    socket.broadcast.emit('newMessage', {
-        form: 'Admin',
-        text: 'New user joined',
-        createdAt: new Date().getTime()
-    });// khi có client mới vào server thì bên các client cũ sẽ chạy mess này
+    socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
+    socket.broadcast.emit('newMessage', generateMessage('Admin', 'New user joined'));// khi có client mới vào server thì bên các client cũ sẽ chạy mess này
     // với broadcast.emit() các client đều listen (chỉ trừ client hiện hành (mới nhất))
     
     
     socket.on('createMessage', (message)=> {
         console.log('createMessage', message);
-        io.emit('newMessage', {
-            from: message.from,
-            text: message.text,
-            createdAt: new Date().getTime()
-        });
+        io.emit('newMessage', generateMessage(message.from, message.text));
     //socket.emit() emit an event to a single connection/ phát event đến 1 client
     //io.emit() emit an event to every single connection/ phát event đến tất cả client ()
     //socket.broadcast.emit() phát event đến tất cả client chỉ trừ client hiện hành
