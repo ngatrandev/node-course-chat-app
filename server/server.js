@@ -3,7 +3,7 @@ const http = require('http');
 const publicPath = path.join(__dirname, "../public");//__dirname là đường dẫn đến folder server dùng join() sẽ tạo đường dẫn đến folder public
 const express = require('express');
 const socketIO = require('socket.io');
-const {generateMessage} = require('./utils/message');
+const {generateMessage,generateLocationMessage} = require('./utils/message');
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);//tích hợp socket.io vào server
@@ -34,6 +34,11 @@ io.on('connection', (socket)=> {//tạo event với name mặc định
     //io.emit() emit an event to every single connection/ phát event đến tất cả client ()
     //socket.broadcast.emit() phát event đến tất cả client chỉ trừ client hiện hành
     })// listen event từ phía client
+
+    socket.on('createLocation', (coords)=> {
+        io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude, coords.longitude))
+    });
+
 });
 
 server.listen(port, () => {
