@@ -1,4 +1,17 @@
 var socket = io();
+function scrollToBottom () {//để auto scroll bar
+    var messages =jQuery('#messages');
+    var newMessage = messages.children('li:last-child');
+    var clientHeight = messages.prop('clientHeight');
+    var scrollTop = messages.prop('scrollTop');
+    var scrollHeight = messages.prop('scrollHeight');
+    var newMessageHeight = newMessage.innerHeight();
+    var lastMessageHeight = newMessage.prev().innerHeight();
+    if (clientHeight + scrollTop + newMessageHeight + lastMessageHeight >= scrollHeight) {
+        messages.scrollTop(scrollHeight);
+    }
+}
+
 socket.on('connect', function () {
     //dùng regular function để tránh lỗi trên các browser và device
     console.log('Connected to server');
@@ -20,6 +33,7 @@ socket.on('newMessage', function (message) {
         createdAt: formatedTime
     });
     jQuery('#messages').append(html);
+    scrollToBottom();
     // var formatedTime = moment(message.createdAt).format('h:mm a');
     // var li = jQuery('<li></li>');
     // li.text(`${message.from}: ${formatedTime} ${message.text} `);// add text vào tab <li></li>
@@ -36,7 +50,7 @@ socket.on('newLocationMessage', function (message) {
         createdAt: formatedTime
     });
     jQuery('#messages').append(html);
-
+    scrollToBottom();
     // var li = jQuery('<li></li>');
     // var a = jQuery('<a target="_blank">My current location</a>');
     // li.text(`${message.from} ${formatedTime} `);
