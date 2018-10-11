@@ -4,15 +4,23 @@ const publicPath = path.join(__dirname, "../public");//__dirname là đường d
 const express = require('express');
 const socketIO = require('socket.io');
 const {generateMessage,generateLocationMessage} = require('./utils/message');
+const {isRealString} = require('./utils/validation');
+const {Users} = require('./utils/users');
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);//tích hợp socket.io vào server
-const port = process.env.PORT || 8080
+const port = process.env.PORT || 8080;
+let users = new Users();
+
 app.use(express.static(publicPath));// middleware qua public folder
 io.on('connection', (socket)=> {//tạo event với name mặc định
     console.log('New user connected');
     socket.on('disconnect', ()=> {
-        console.log('User was disconnected');
+       var user = users.removeUser(socket.id);
+       if (user) {
+           socket.to(user.room).emit('updateUserList', users.getUserList(user.room));
+           socket.to(user.room).emit('newMessage', generateMessage('Admin', `${user.name} has left.`))
+       }
     });
     //terminal (bên server) viết trong file server.js
     // browser (bên client) viết trong file index.html
@@ -21,10 +29,21 @@ io.on('connection', (socket)=> {//tạo event với name mặc định
     //     text: "See you then",
     //     createAt: 123123
     // }) // emit event: phát ra event để phía client listen.
-    socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
-    socket.broadcast.emit('newMessage', generateMessage('Admin', 'New user joined'));// khi có client mới vào server thì bên các client cũ sẽ chạy mess này
+    // socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
+    // socket.broadcast.emit('newMessage', generateMessage('Admin', 'New user joined'));// khi có client mới vào server thì bên các client cũ sẽ chạy mess này
     // với broadcast.emit() các client đều listen (chỉ trừ client hiện hành (mới nhất))
-    
+    socket.on('join', (params, callback)=> {
+        if(!isRealString(params.name) || !isRealString(params.room)) {
+           return callback('Name and room name are required.');
+        }
+        socket.join(params.room);// join vao room
+        users.removeUser(socket.id);// bỏ user trong các room đã join
+        users.addUser(socket.id, params.name, params.room);
+        io.to(params.room).emit('updateUserList', users.getUserList(params.room))
+        socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
+        socket.broadcast.to(params.room).emit('newMessage', generateMessage('Admin', `${params.name} has joined`));
+
+    })
     
     socket.on('createMessage', (message, callback)=> {
         console.log('createMessage', message);

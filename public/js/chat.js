@@ -14,15 +14,34 @@ function scrollToBottom () {//để auto scroll bar
 
 socket.on('connect', function () {
     //dùng regular function để tránh lỗi trên các browser và device
-    console.log('Connected to server');
+    //console.log('Connected to server');
     // socket.emit('createMessage', {
     //     form: 'ngatrandev',
     //     text: 'Hey, that works for me'
     // })//phát ra event đến server
+    var params = jQuery.deparam(window.location.search); //chuyển đoạn string trên url thành object
+    socket.emit('join', params, function (err) {
+        if (err) {
+            alert(err);
+            window.location.href = '/'; //khi lỗi cho link về homepage
+        } else {
+            console.log('No error');
+        }
+    })
 });
 socket.on('disconnect', function () {
     console.log('Disconnected from the server');
 });
+
+socket.on('updateUserList', function (users) {
+    var ol = jQuery('<ol></ol>');
+    users.forEach(function (user) {
+        ol.append(jQuery('<li></li>').text(user));
+    })
+    jQuery('#users').html(ol);
+})
+
+
 
 socket.on('newMessage', function (message) {
     var formatedTime = moment(message.createdAt).format('h:mm a');
@@ -59,13 +78,13 @@ socket.on('newLocationMessage', function (message) {
     // jQuery('#messages').append(li);
 });
 
-socket.emit('createMessage', {
-    from: 'joseph',
-    text: 'Acknowledgement'
-}, function (data) {//function này để chạy acknowledgement
-    //data là giá trị trong callback(...) bên file server(phía listen event)
-    console.log(data);
-});
+// socket.emit('createMessage', {
+//     from: 'joseph',
+//     text: 'Acknowledgement'
+// }, function (data) {//function này để chạy acknowledgement
+//     //data là giá trị trong callback(...) bên file server(phía listen event)
+//     console.log(data);
+// });
 
 jQuery('#message-form').on('submit', function (e) {//dùng onsubmit event
     e.preventDefault();
