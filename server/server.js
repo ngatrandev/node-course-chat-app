@@ -29,7 +29,7 @@ io.on('connection', (socket)=> {//tạo event với name mặc định
     socket.on('createMessage', (message, callback)=> {
         console.log('createMessage', message);
         io.emit('newMessage', generateMessage(message.from, message.text));
-        callback('Data is valid');//callback là acknowledgement với vai trò trung gian để xác thực data từ client đến server có valid hay k?
+        callback();//callback là acknowledgement với vai trò trung gian để xác thực data từ client đến server có valid hay k?
     //socket.emit() emit an event to a single connection/ phát event đến 1 client
     //io.emit() emit an event to every single connection/ phát event đến tất cả client ()
     //socket.broadcast.emit() phát event đến tất cả client chỉ trừ client hiện hành
