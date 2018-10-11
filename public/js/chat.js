@@ -90,7 +90,6 @@ jQuery('#message-form').on('submit', function (e) {//dùng onsubmit event
     e.preventDefault();
     const messageTextbox = jQuery('[name=message]');
     socket.emit('createMessage', {
-        from: 'User',
         text: messageTextbox.val()//lấy value trong input text
     }, function () {
         messageTextbox.val('');//để sau khi bấm sent textbox rỗng.

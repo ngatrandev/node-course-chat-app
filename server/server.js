@@ -46,16 +46,24 @@ io.on('connection', (socket)=> {//tạo event với name mặc định
     })
     
     socket.on('createMessage', (message, callback)=> {
-        console.log('createMessage', message);
-        io.emit('newMessage', generateMessage(message.from, message.text));
+       var user = users.getUser(socket.id);
+       if (user && isRealString(message.text)) {
+        io.to(user.room).emit('newMessage', generateMessage(user.name, message.text));
+       };
+        
         callback();//callback là acknowledgement với vai trò trung gian để xác thực data từ client đến server có valid hay k?
     //socket.emit() emit an event to a single connection/ phát event đến 1 client
     //io.emit() emit an event to every single connection/ phát event đến tất cả client ()
     //socket.broadcast.emit() phát event đến tất cả client chỉ trừ client hiện hành
+    //io.to('...')emit()  phát event đến tất cả client trong room
     })// listen event từ phía client
 
     socket.on('createLocation', (coords)=> {
-        io.emit('newLocationMessage', generateLocationMessage('Admin', coords.latitude, coords.longitude))
+        var user = users.getUser(socket.id);
+        if (user) {
+            io.to(user.room).emit('newLocationMessage', generateLocationMessage(user.name, coords.latitude, coords.longitude));
+        }
+        
     });
 
 });
